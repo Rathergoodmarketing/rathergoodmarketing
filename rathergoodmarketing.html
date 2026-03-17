@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rather Good Marketing</title>
+  <meta name="description" content="Senior marketing leadership for consumer brands — without the overhead of a full-time hire." />
+  <meta property="og:title" content="Rather Good Marketing" />
+  <meta property="og:description" content="Senior marketing leadership for consumer brands — without the overhead of a full-time hire." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; }
+    ::selection { background: rgba(200,169,110,0.25); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    const C = {
+      brg:"#1F4A2E", brgMid:"#2E6B42", brgPale:"#4A8A5C",
+      champ:"#C8A96E", champD:"#9A7A48", champLt:"#E8D5B0",
+      ink:"#1C1C1A", white:"#FAFAF8", offwhite:"#F0EDE8", pale:"#E8E4DE",
+      slate:"#5A5652", stone:"#8A8480", rule:"#E0DAD2",
+    };
+    const LORA = "'Lora', Georgia, serif";
+    const POP  = "'Poppins', system-ui, sans-serif";
+    const MAX  = 1080;
+
+    // ── Primitives ───────────────────────────────────────────────────
+    const Label = ({ t, light }) => (
+      <p style={{ fontFamily:POP, fontSize:11, fontWeight:600, letterSpacing:"0.2em",
+        textTransform:"uppercase", color:light ? C.champ : C.champD,
+        display:"flex", alignItems:"center", gap:12, marginBottom:14 }}>
+        <span style={{ width:24, height:2, background:C.champ, flexShrink:0, display:"inline-block" }}/>
+        {t}
+      </p>
+    );
+
+    function Btn({ children, href, onClick, outline, full }) {
+      const [h, sH] = useState(false);
+      const s = {
+        display:"inline-flex", alignItems:"center", gap:10,
+        fontFamily:POP, fontSize:13, fontWeight:500, letterSpacing:"0.07em", textTransform:"uppercase",
+        padding:"14px 28px", borderRadius:2, cursor:"pointer",
+        border: outline ? `1.5px solid ${C.ink}` : "none",
+        background: outline ? "transparent" : (h ? C.brgMid : C.brg),
+        color: outline ? (h ? C.brg : C.ink) : C.white,
+        textDecoration:"none", transition:"all 0.2s",
+        width: full ? "100%" : "auto", justifyContent:"center",
+      };
+      if (href) return <a href={href} style={s} onMouseEnter={()=>sH(true)} onMouseLeave={()=>sH(false)}>{children}</a>;
+      return <button style={s} onClick={onClick} onMouseEnter={()=>sH(true)} onMouseLeave={()=>sH(false)}>{children}</button>;
+    }
+
+    function Reveal({ children, delay=0 }) {
+      const ref = useRef(null);
+      const [vis, setVis] = useState(false);
+      useEffect(()=>{
+        const el = ref.current; if (!el) return;
+        const obs = new IntersectionObserver(([e])=>{ if(e.isIntersecting) setVis(true); },{threshold:0.08});
+        obs.observe(el); return ()=>obs.disconnect();
+      },[]);
+      return (
+        <div ref={ref} style={{ opacity:vis?1:0, transform:vis?"none":"translateY(18px)",
+          transition:`opacity 0.65s ease ${delay}ms,transform 0.65s ease ${delay}ms` }}>
+          {children}
+        </div>
+      );
+    }
+
+    const HR = () => <div style={{ height:1, background:C.rule }} />;
+
+    // ── NAV ──────────────────────────────────────────────────────────
+    function Nav() {
+      const [scrolled, setScrolled] = useState(false);
+      const [open, setOpen] = useState(false);
+      useEffect(()=>{
+        const fn = ()=>setScrolled(window.scrollY>10);
+        window.addEventListener("scroll",fn,{passive:true});
+        return ()=>window.removeEventListener("scroll",fn);
+      },[]);
+      useEffect(()=>{ document.body.style.overflow=open?"hidden":""; return()=>{document.body.style.overflow="";}; },[open]);
+
+      const links=[{l:"What we do",h:"#services"},{l:"How it works",h:"#process"},{l:"Experience",h:"#experience"},{l:"Contact",h:"#contact"}];
+
+      return (
+        <>
+          <style>{`
+            @keyframes rgmUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+            .rgm-dlinks{display:flex;align-items:center;gap:32px;}
+            .rgm-ham{display:none!important;background:none;border:none;cursor:pointer;padding:6px;color:${C.ink};}
+            @media(max-width:768px){
+              .rgm-dlinks{display:none!important;}
+              .rgm-ham{display:flex!important;align-items:center;justify-content:center;}
+            }
+          `}</style>
+
+          {/* Bar */}
+          <nav style={{ position:"fixed",top:0,left:0,right:0,zIndex:200,
+            background:C.white,
+            boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.07)" : "none",
+            transition:"box-shadow 0.3s" }}>
+            <div style={{ height:3, background:scrolled?C.champ:"transparent", transition:"background 0.4s" }}/>
+            <div style={{ maxWidth:MAX,margin:"0 auto",padding:"0 clamp(20px,4vw,56px)",
+              height:68,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+
+              <a href="#hero" onClick={()=>setOpen(false)}
+                style={{ fontFamily:POP,fontSize:13,fontWeight:500,color:C.brg,textDecoration:"none",
+                  flexShrink:0,letterSpacing:"0.02em" }}>
+                Senior marketing. No fluff, no filler.
+              </a>
+
+              {/* Desktop */}
+              <div className="rgm-dlinks">
+                {links.map(l=>(
+                  <a key={l.l} href={l.h}
+                    style={{ fontFamily:POP,fontSize:13,color:C.slate,textDecoration:"none",
+                      letterSpacing:"0.02em",transition:"color 0.2s" }}
+                    onMouseEnter={e=>e.target.style.color=C.ink}
+                    onMouseLeave={e=>e.target.style.color=C.slate}>{l.l}</a>
+                ))}
+                <Btn href="#contact">Let's talk</Btn>
+              </div>
+
+              {/* Hamburger */}
+              <button className="rgm-ham" onClick={()=>setOpen(o=>!o)} aria-label={open?"Close menu":"Open menu"}>
+                {open
+                  ? <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="3" y1="3" x2="19" y2="19"/><line x1="19" y1="3" x2="3" y2="19"/></svg>
+                  : <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" strokeWidth="1.8"><line x1="2" y1="6" x2="20" y2="6"/><line x1="2" y1="13" x2="20" y2="13"/><line x1="2" y1="20" x2="20" y2="20"/></svg>
+                }
+              </button>
+            </div>
+          </nav>
+
+          {/* Mobile overlay */}
+          <div style={{ position:"fixed",inset:0,zIndex:190,background:C.white,
+            display:"flex",flexDirection:"column",justifyContent:"center",
+            padding:"80px clamp(28px,6vw,48px) 48px",
+            opacity:open?1:0,pointerEvents:open?"auto":"none",
+            transition:"opacity 0.28s" }}>
+            {links.map((l,i)=>(
+              <a key={l.l} href={l.h} onClick={()=>setOpen(false)}
+                style={{ fontFamily:LORA,fontSize:"clamp(28px,7vw,40px)",fontWeight:400,
+                  color:C.ink,textDecoration:"none",padding:"16px 0",
+                  borderBottom:`1px solid ${C.rule}`,
+                  opacity:open?1:0,transform:open?"none":"translateY(14px)",
+                  transition:`opacity 0.3s ease ${i*55}ms,transform 0.3s ease ${i*55}ms` }}>
+                {l.l}
+              </a>
+            ))}
+            <div style={{ marginTop:40, display:"flex", flexDirection:"column", gap:16 }}>
+              <Btn href="#contact" full onClick={()=>setOpen(false)}>Let's talk</Btn>
+              <a href="mailto:kate@rathergoodmarketing.com.au"
+                style={{ fontFamily:POP,fontSize:14,color:C.brg,textDecoration:"none",textAlign:"center" }}>
+                kate@rathergoodmarketing.com.au
+              </a>
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    // ── HERO ─────────────────────────────────────────────────────────
+    function Hero() {
+      return (
+        <section id="hero" style={{ paddingTop:71,minHeight:"100svh",display:"flex",
+          flexDirection:"column",justifyContent:"flex-start",background:C.white }}>
+          <div style={{ maxWidth:MAX,margin:"0 auto",width:"100%",
+            padding:"clamp(32px,4vh,56px) clamp(20px,4vw,56px)" }}>
+
+            <div style={{ opacity:0,animation:"rgmUp 0.8s ease 0.1s forwards" }}>
+              <h1 style={{ fontFamily:LORA,fontWeight:400,
+                fontSize:"clamp(52px,9vw,112px)",
+                lineHeight:1.04,letterSpacing:"-0.025em",
+                color:C.brg,margin:"0 0 16px",maxWidth:960 }}>
+                Rather Good<br/>Marketing
+              </h1>
+            </div>
+
+            <div style={{ opacity:0,animation:"rgmUp 0.7s ease 0.22s forwards" }}>
+              <p style={{ fontFamily:POP,fontSize:"clamp(13px,1.4vw,15px)",fontStyle:"italic",
+                color:C.stone,letterSpacing:"0.04em",marginBottom:28 }}>
+                Senior marketing. No fluff, no filler.
+              </p>
+            </div>
+
+            <div style={{ opacity:0,animation:"rgmUp 0.7s ease 0.32s forwards" }}>
+              <div style={{ width:48,height:3,background:C.champ,marginBottom:26 }}/>
+            </div>
+
+            <div style={{ opacity:0,animation:"rgmUp 0.7s ease 0.42s forwards" }}>
+              <p style={{ fontFamily:LORA,fontSize:"clamp(18px,2.2vw,24px)",fontStyle:"italic",
+                color:C.slate,lineHeight:1.55,maxWidth:600,marginBottom:36 }}>
+                Senior marketing leadership for consumer brands —<br/>
+                without the overhead of a full-time hire.
+              </p>
+            </div>
+
+            <div style={{ opacity:0,animation:"rgmUp 0.7s ease 0.52s forwards",
+              display:"flex",gap:14,flexWrap:"wrap" }}>
+              <Btn href="#contact">Book a conversation</Btn>
+              <Btn href="#services" outline>How we work</Btn>
+            </div>
+
+            {/* Stats strip */}
+            <div style={{ opacity:0,animation:"rgmUp 0.7s ease 0.68s forwards" }}>
+              <div style={{ marginTop:64,paddingTop:28,borderTop:`1px solid ${C.rule}`,
+                display:"flex",gap:"clamp(24px,5vw,64px)",flexWrap:"wrap" }}>
+                {[
+                  {n:"20+",   l:"years in consumer marketing"},
+                  {n:"AU · UK", l:"remote or in person — Australia & UK"},
+                ].map((s,i)=>(
+                  <div key={i}>
+                    <p style={{ fontFamily:LORA,fontSize:"clamp(20px,2.5vw,30px)",
+                      color:C.ink,lineHeight:1,marginBottom:4 }}>{s.n}</p>
+                    <p style={{ fontFamily:POP,fontSize:12,color:C.stone,letterSpacing:"0.04em" }}>{s.l}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ── SERVICES ─────────────────────────────────────────────────────
+    function Services() {
+      const svcs = [
+        { tag:"Fractional CMO", title:"Ongoing strategic leadership",
+          body:"A senior marketing leader embedded in your business part-time — typically one to three days per week. We run the strategy, manage the team and agencies, own the plan, and stay accountable to commercial outcomes.",
+          meta:"Typically 3–12 months · 1–2 days a week or as needed · Full CMO scope" },
+        { tag:"Interim", title:"Immediate leadership cover",
+          body:"When your marketing lead has left and you can't afford the gap. We step in at CMO or Head of Marketing level, maintain momentum, and ensure the business doesn't lose six months of strategic ground.",
+          meta:"Available at short notice · Full or part-time · 3–6 months" },
+        { tag:"Marketing Reset", title:"Defined scope, clear deliverable",
+          body:"A brand audit, channel reset, go-to-market plan, or commercial review. Scoped, priced, delivered. When you know what needs doing and want experienced hands to do it properly.",
+          meta:"Fixed scope and fee · 4–12 weeks · Clean handover" },
+      ];
+      return (
+        <section id="services" style={{ background:C.offwhite }}>
+          <HR/>
+          <div style={{ maxWidth:MAX,margin:"0 auto",
+            padding:"clamp(64px,8vw,112px) clamp(20px,4vw,56px)" }}>
+            <Reveal>
+              <Label t="What we do"/>
+              <h2 style={{ fontFamily:LORA,fontSize:"clamp(28px,4vw,48px)",fontWeight:400,
+                color:C.ink,lineHeight:1.15,marginBottom:16,maxWidth:680 }}>
+                Three ways to engage.<br/>One way to start.
+              </h2>
+              <p style={{ fontFamily:POP,fontSize:15,color:C.slate,lineHeight:1.75,
+                maxWidth:560,marginBottom:52 }}>
+                We work the way the situation demands. Some clients need embedded leadership for a year. Some need an intensive reset. We'll work out the right shape on the first call.
+              </p>
+            </Reveal>
+
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",
+              gap:2,background:C.pale }}>
+              {svcs.map((sv,i)=>(
+                <Reveal key={i} delay={i*70}>
+                  <div style={{ background:C.white,padding:"36px 30px 40px",height:"100%",
+                    display:"flex",flexDirection:"column",
+                    borderTop:"3px solid transparent",transition:"background 0.2s,border-color 0.2s" }}
+                    onMouseEnter={e=>{e.currentTarget.style.background=C.offwhite;e.currentTarget.style.borderTopColor=C.champ;}}
+                    onMouseLeave={e=>{e.currentTarget.style.background=C.white;e.currentTarget.style.borderTopColor="transparent";}}>
+                    <p style={{ fontFamily:POP,fontSize:10,fontWeight:600,letterSpacing:"0.2em",
+                      textTransform:"uppercase",color:C.champ,marginBottom:14 }}>{sv.tag}</p>
+                    <h3 style={{ fontFamily:LORA,fontSize:21,fontWeight:400,
+                      color:C.ink,lineHeight:1.25,marginBottom:14 }}>{sv.title}</h3>
+                    <p style={{ fontFamily:POP,fontSize:14,color:C.slate,lineHeight:1.72,flex:1,marginBottom:24 }}>{sv.body}</p>
+                    <p style={{ fontFamily:POP,fontSize:11,color:C.stone,letterSpacing:"0.04em",
+                      paddingTop:18,borderTop:`1px solid ${C.rule}` }}>{sv.meta}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+
+            <Reveal delay={150}>
+              <div style={{ marginTop:2,background:C.ink,padding:"24px 30px",
+                display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16 }}>
+                <p style={{ fontFamily:LORA,fontStyle:"italic",fontSize:16,color:C.white,maxWidth:540 }}>
+                  Priced as a day rate, fixed-term engagement, or a pre-purchased block of hours drawn down as needed.
+                </p>
+                <a href="#contact" style={{ fontFamily:POP,fontSize:12,fontWeight:600,letterSpacing:"0.1em",
+                  textTransform:"uppercase",color:C.champ,textDecoration:"none",flexShrink:0 }}>
+                  Discuss your brief →
+                </a>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      );
+    }
+
+    // ── PROCESS ──────────────────────────────────────────────────────
+    function Process() {
+      const steps=[
+        {n:"01",t:"The conversation",  b:"15 minutes. You tell us what's going on. We tell you honestly whether we're the right fit. No pitch deck."},
+        {n:"02",t:"The assessment",    b:"A sharp diagnostic within two weeks. What's working, what isn't, and what order to tackle it in. Connected to commercial outcomes."},
+        {n:"03",t:"The 90-day plan",   b:"A working plan with owners, milestones and a budget — not a strategy document that lives in a drawer."},
+        {n:"04",t:"The work",          b:"Hands in where they need to be. Out of the way where they don't. We aim to leave the team stronger than we found it."},
+      ];
+      return (
+        <section id="process" style={{ background:C.white }}>
+          <HR/>
+          <div style={{ maxWidth:MAX,margin:"0 auto",
+            padding:"clamp(64px,8vw,112px) clamp(20px,4vw,56px)" }}>
+            <Reveal>
+              <Label t="How it starts"/>
+              <h2 style={{ fontFamily:LORA,fontSize:"clamp(28px,4vw,48px)",fontWeight:400,
+                color:C.ink,lineHeight:1.15,marginBottom:52,maxWidth:560 }}>
+                The same way, every time.
+              </h2>
+            </Reveal>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:40 }}>
+              {steps.map((st,i)=>(
+                <Reveal key={i} delay={i*65}>
+                  <div>
+                    <p style={{ fontFamily:LORA,fontSize:52,color:C.pale,lineHeight:1,marginBottom:16 }}>{st.n}</p>
+                    <div style={{ width:28,height:2,background:C.champ,marginBottom:14 }}/>
+                    <h3 style={{ fontFamily:LORA,fontSize:18,fontWeight:400,color:C.ink,marginBottom:10 }}>{st.t}</h3>
+                    <p style={{ fontFamily:POP,fontSize:14,color:C.slate,lineHeight:1.7 }}>{st.b}</p>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ── WHO WE WORK WITH ─────────────────────────────────────────────
+    function WhoWeWorkWith() {
+      const scs=[
+        {s:"Your CMO or Head of Marketing has just left.", r:" You need senior leadership in the room while you work out what permanent looks like — you can't afford six months of drift."},
+        {s:"You're growing and the marketing isn't keeping up.", r:" The team is executing but nobody is steering. The brand is fragmenting. The strategy is getting reactive."},
+        {s:"You need CMO-level thinking but a full-time hire isn't right yet.", r:" Revenue is between $5m and $50m. You need senior judgment, not more headcount."},
+        {s:"You have a specific problem that needs solving.", r:" A rebrand, a channel reset, a launch, a commercial audit. Defined scope. Experienced hands."},
+      ];
+      return (
+        <section style={{ background:C.offwhite }}>
+          <HR/>
+          <div style={{ maxWidth:MAX,margin:"0 auto",
+            padding:"clamp(64px,8vw,112px) clamp(20px,4vw,56px)" }}>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",
+              gap:"clamp(40px,6vw,80px)",alignItems:"start" }}>
+              <Reveal>
+                <Label t="Who we work with"/>
+                <h2 style={{ fontFamily:LORA,fontSize:"clamp(26px,3.5vw,42px)",fontWeight:400,
+                  color:C.ink,lineHeight:1.2,marginBottom:20 }}>If any of this<br/>sounds familiar.</h2>
+                <p style={{ fontFamily:POP,fontSize:15,color:C.slate,lineHeight:1.75 }}>
+                  Most marketing problems aren't complicated. They need someone who has seen them before and can tell the difference between the problem and the symptom.
+                </p>
+              </Reveal>
+              <div>
+                {scs.map((sc,i)=>(
+                  <Reveal key={i} delay={i*55}>
+                    <div style={{ display:"flex",gap:18,padding:"22px 0",
+                      borderBottom:`1px solid ${C.rule}`,borderTop:i===0?`1px solid ${C.rule}`:"none" }}>
+                      <span style={{ fontFamily:LORA,fontSize:12,color:C.champ,paddingTop:2,flexShrink:0 }}>
+                        {String(i+1).padStart(2,"0")}
+                      </span>
+                      <p style={{ fontFamily:POP,fontSize:15,color:C.slate,lineHeight:1.65 }}>
+                        <strong style={{ color:C.ink,fontWeight:500 }}>{sc.s}</strong>{sc.r}
+                      </p>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ── EXPERIENCE ───────────────────────────────────────────────────
+    function Experience() {
+      const sectors=["Luxury goods & fine jewellery","Beauty & personal care","Fashion & apparel","Lifestyle & homewares","Ecommerce & DTC brands","Retail & wholesale"];
+      const brands =["Marks & Spencer","T.U.K / Ellette Beauty","Kennedy","GRAFF","Rolex","+ others"];
+      return (
+        <section id="experience" style={{ background:C.ink,position:"relative",overflow:"hidden" }}>
+          <div style={{ position:"absolute",left:0,top:0,bottom:0,width:4,background:C.champ }}/>
+          <div style={{ maxWidth:MAX,margin:"0 auto",
+            padding:"clamp(64px,8vw,112px) clamp(20px,4vw,56px) clamp(64px,8vw,112px) clamp(28px,4vw,60px)" }}>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",
+              gap:"clamp(48px,6vw,80px)",alignItems:"start" }}>
+              <div>
+                <Reveal>
+                  <Label t="Experience" light/>
+                  <h2 style={{ fontFamily:LORA,fontSize:"clamp(28px,4vw,48px)",fontWeight:400,
+                    color:C.white,lineHeight:1.15,marginBottom:20 }}>
+                    20+ years.<br/>Consumer brands.<br/>Commercial results.
+                  </h2>
+                  <p style={{ fontFamily:POP,fontSize:15,color:C.stone,lineHeight:1.75,marginBottom:44 }}>
+                    We've worked across luxury, beauty, jewellery, fashion, lifestyle and ecommerce — in-house, fractional, and embedded in growth-stage businesses across Australia and the UK.
+                  </p>
+                </Reveal>
+                {sectors.map((s,i)=>(
+                  <Reveal key={i} delay={i*35}>
+                    <div style={{ display:"flex",gap:14,padding:"14px 0",
+                      borderBottom:"1px solid rgba(255,255,255,0.07)",
+                      borderTop:i===0?"1px solid rgba(255,255,255,0.07)":"none" }}>
+                      <div style={{ width:5,height:5,borderRadius:"50%",background:C.champ,flexShrink:0,marginTop:7 }}/>
+                      <span style={{ fontFamily:POP,fontSize:14,color:C.stone }}>{s}</span>
+                    </div>
+                  </Reveal>
+                ))}
+                <Reveal delay={180}>
+                  <div style={{ marginTop:32 }}>
+                    <p style={{ fontFamily:POP,fontSize:11,fontWeight:600,letterSpacing:"0.18em",
+                      textTransform:"uppercase",color:C.champD,marginBottom:14 }}>Work includes</p>
+                    <div style={{ display:"flex",flexWrap:"wrap",gap:8 }}>
+                      {brands.map((b,i)=>(
+                        <span key={i} style={{ fontFamily:POP,fontSize:12,color:C.stone,
+                          padding:"6px 12px",border:"1px solid rgba(255,255,255,0.1)",
+                          borderRadius:2,letterSpacing:"0.03em" }}>{b}</span>
+                      ))}
+                    </div>
+                  </div>
+                </Reveal>
+              </div>
+
+              <div style={{ display:"flex",flexDirection:"column",gap:20 }}>
+                <Reveal delay={60}>
+                  <div style={{ padding:"30px 32px",background:"rgba(255,255,255,0.04)",
+                    borderLeft:`3px solid ${C.champ}` }}>
+                    <p style={{ fontFamily:LORA,fontSize:15,fontStyle:"italic",
+                      color:C.white,lineHeight:1.72,marginBottom:14 }}>
+                      "Within a month she'd diagnosed what was wrong, stopped what wasn't working, and had the team focused on what actually moved the needle. She didn't need managing. She just got on with it."
+                    </p>
+                    <p style={{ fontFamily:POP,fontSize:11,color:C.stone,
+                      letterSpacing:"0.08em",textTransform:"uppercase" }}>
+                      Founder, luxury jewellery brand · Melbourne
+                    </p>
+                  </div>
+                </Reveal>
+                <Reveal delay={110}>
+                  <div style={{ padding:"26px 32px",background:"rgba(255,255,255,0.04)",
+                    border:"1px solid rgba(255,255,255,0.07)" }}>
+                    <p style={{ fontFamily:POP,fontSize:11,fontWeight:600,letterSpacing:"0.15em",
+                      textTransform:"uppercase",color:C.champ,marginBottom:10 }}>Specialist network</p>
+                    <p style={{ fontFamily:POP,fontSize:14,color:C.stone,lineHeight:1.7 }}>
+                      When the work calls for it, we bring in proven specialists — brand, digital, creative, CRM, partnerships. Curated for the brief, not the bench.
+                    </p>
+                  </div>
+                </Reveal>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ── CONTACT ──────────────────────────────────────────────────────
+    function Contact() {
+      const [step,setStep]=useState(1);
+      const [done,setDone]=useState(false);
+      const [sending,setSending]=useState(false);
+      const [sendErr,setSendErr]=useState(false);
+      const [form,setForm]=useState({name:"",company:"",email:"",situation:"",context:"",format:"",time1:"",time2:"",time3:""});
+      const [err,setErr]=useState({});
+      const set = f => e => setForm(p=>({...p,[f]:e.target.value}));
+
+      function validate(s){
+        const e={};
+        if(s===1&&!form.name.trim())e.name=true;
+        if(s===1&&(!form.email.trim()||!form.email.includes("@")))e.email=true;
+        if(s===4&&!form.time1.trim())e.time1=true;
+        return e;
+      }
+
+      async function next(){
+        const e=validate(step); if(Object.keys(e).length){setErr(e);return;}
+        setErr({});
+        if(step<4){
+          setStep(s=>s+1);
+        } else {
+          // Submit to Formspree
+          setSending(true);
+          setSendErr(false);
+          try {
+            const res = await fetch("https://formspree.io/f/YOUR_FORM_ID", {
+              method: "POST",
+              headers: { "Content-Type": "application/json", "Accept": "application/json" },
+              body: JSON.stringify({
+                name: form.name,
+                company: form.company,
+                email: form.email,
+                situation: form.situation,
+                context: form.context,
+                format: form.format,
+                availability: [form.time1, form.time2, form.time3].filter(Boolean).join(" / "),
+              })
+            });
+            if (res.ok) {
+              setDone(true);
+            } else {
+              setSendErr(true);
+            }
+          } catch(err) {
+            setSendErr(true);
+          } finally {
+            setSending(false);
+          }
+        }
+      }
+
+      const iStyle=e=>({
+        width:"100%",fontFamily:POP,fontSize:14,color:C.ink,
+        background:C.white,border:`1px solid ${e?"#c0392b":C.rule}`,
+        padding:"12px 14px",borderRadius:2,outline:"none",
+        transition:"border-color 0.2s",marginTop:5,display:"block",
+      });
+
+      const opts=[
+        {v:"cmo-left",   l:"Our CMO or Head of Marketing has left",      s:"Need cover or fresh strategic direction"},
+        {v:"no-strategy",l:"We need a clear marketing strategy",          s:"Growing but marketing isn't keeping pace"},
+        {v:"fractional", l:"We need CMO-level thinking, part-time",       s:"Not ready for a full-time hire"},
+        {v:"project",    l:"We have a specific project or challenge",     s:"Rebrand, launch, reset — defined scope"},
+        {v:"other",      l:"Something else",                              s:"Happy to explain"},
+      ];
+
+      return (
+        <section id="contact" style={{ background:C.white }}>
+          <HR/>
+          <div style={{ maxWidth:MAX,margin:"0 auto",
+            padding:"clamp(64px,8vw,112px) clamp(20px,4vw,56px)" }}>
+            <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(300px,1fr))",
+              gap:"clamp(48px,6vw,96px)",alignItems:"start" }}>
+
+              {/* Left */}
+              <div>
+                <Reveal>
+                  <Label t="Start here"/>
+                  <h2 style={{ fontFamily:LORA,fontSize:"clamp(32px,4.5vw,56px)",fontWeight:400,
+                    color:C.ink,lineHeight:1.08,marginBottom:20 }}>Coffee's<br/>on us.</h2>
+                  <p style={{ fontFamily:POP,fontSize:15,color:C.slate,lineHeight:1.75,marginBottom:32 }}>
+                    Every engagement starts with a no-obligation 15-minute conversation. Tell us what's going on, suggest a couple of times, and we'll come back within one working day.
+                  </p>
+                </Reveal>
+                {[
+                  {icon:"☕",t:"No pitch. No obligation.",b:"If it's not the right fit, we'll say so — and we'll usually know who is. Genuinely free."},
+                  {icon:"📍",t:"Melbourne, Australia & UK.",b:"In person in Melbourne, or remotely across Australia and the UK."},
+                  {icon:"↩",t:"Back to you within 24 hours.",b:"We reply to every enquiry within one working day. No automated sequences."},
+                ].map((n,i)=>(
+                  <Reveal key={i} delay={i*50}>
+                    <div style={{ display:"flex",gap:14,padding:"16px 18px",
+                      borderLeft:`3px solid ${C.champ}`,background:C.offwhite,marginBottom:8 }}>
+                      <span style={{ fontSize:18,flexShrink:0 }}>{n.icon}</span>
+                      <div>
+                        <p style={{ fontFamily:POP,fontSize:13,fontWeight:500,color:C.ink,marginBottom:3 }}>{n.t}</p>
+                        <p style={{ fontFamily:POP,fontSize:13,color:C.slate,lineHeight:1.6 }}>{n.b}</p>
+                      </div>
+                    </div>
+                  </Reveal>
+                ))}
+                <Reveal delay={160}>
+                  <p style={{ marginTop:22,fontFamily:POP,fontSize:14,color:C.stone }}>
+                    Prefer email?{" "}
+                    <a href="mailto:kate@rathergoodmarketing.com.au"
+                      style={{ color:C.brg,borderBottom:`1px solid ${C.rule}`,textDecoration:"none" }}>
+                      kate@rathergoodmarketing.com.au
+                    </a>
+                  </p>
+                </Reveal>
+              </div>
+
+              {/* Form */}
+              <Reveal delay={80}>
+                <div style={{ background:C.offwhite,padding:"clamp(24px,4vw,40px)",
+                  border:`1px solid ${C.rule}` }}>
+                  {!done ? (
+                    <>
+                      <h3 style={{ fontFamily:LORA,fontSize:22,color:C.ink,marginBottom:6 }}>Let's talk.</h3>
+                      <p style={{ fontFamily:POP,fontSize:14,color:C.slate,marginBottom:24,lineHeight:1.55 }}>
+                        Four quick questions. About two minutes.
+                      </p>
+
+                      {/* Progress */}
+                      <div style={{ display:"flex",gap:5,marginBottom:26 }}>
+                        {[1,2,3,4].map(i=>(
+                          <div key={i} style={{ flex:1,height:3,borderRadius:2,
+                            background:i<step?C.brg:i===step?C.champ:C.rule,transition:"background 0.3s" }}/>
+                        ))}
+                      </div>
+
+                      {step===1&&(
+                        <div>
+                          <p style={{ fontFamily:POP,fontSize:10,fontWeight:600,letterSpacing:"0.18em",
+                            textTransform:"uppercase",color:C.champD,marginBottom:12 }}>Step 1 of 4 · About you</p>
+                          <p style={{ fontFamily:LORA,fontSize:17,color:C.ink,marginBottom:20 }}>Who are we talking to?</p>
+                          {[{id:"name",lbl:"Your name",ph:"First name is fine",type:"text",ac:"name"},
+                            {id:"company",lbl:"Brand / company",ph:"Your brand name",type:"text",ac:"organization"},
+                            {id:"email",lbl:"Email address",ph:"you@yourbrand.com",type:"email",ac:"email"}
+                          ].map(f=>(
+                            <div key={f.id} style={{ marginBottom:13 }}>
+                              <label style={{ fontFamily:POP,fontSize:11,fontWeight:500,letterSpacing:"0.06em",
+                                textTransform:"uppercase",color:C.slate,display:"block" }}>{f.lbl}</label>
+                              <input type={f.type} value={form[f.id]} onChange={set(f.id)}
+                                placeholder={f.ph} autoComplete={f.ac} style={iStyle(err[f.id])}
+                                onFocus={e=>e.target.style.borderColor=C.champ}
+                                onBlur={e=>e.target.style.borderColor=err[f.id]?"#c0392b":C.rule}/>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {step===2&&(
+                        <div>
+                          <p style={{ fontFamily:POP,fontSize:10,fontWeight:600,letterSpacing:"0.18em",
+                            textTransform:"uppercase",color:C.champD,marginBottom:12 }}>Step 2 of 4 · The situation</p>
+                          <p style={{ fontFamily:LORA,fontSize:17,color:C.ink,marginBottom:18 }}>What's the main reason you're getting in touch?</p>
+                          {opts.map(o=>(
+                            <div key={o.v} onClick={()=>setForm(f=>({...f,situation:o.v}))}
+                              style={{ display:"flex",gap:12,padding:"11px 13px",marginBottom:7,
+                                background:form.situation===o.v?"rgba(200,169,110,0.1)":C.white,
+                                border:`1px solid ${form.situation===o.v?C.champ:C.rule}`,
+                                borderRadius:2,cursor:"pointer",transition:"all 0.15s" }}>
+                              <input type="radio" readOnly checked={form.situation===o.v}
+                                style={{ accentColor:C.champ,marginTop:3,flexShrink:0 }}/>
+                              <div>
+                                <p style={{ fontFamily:POP,fontSize:14,color:C.ink }}>{o.l}</p>
+                                <p style={{ fontFamily:POP,fontSize:12,color:C.stone,marginTop:2 }}>{o.s}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {step===3&&(
+                        <div>
+                          <p style={{ fontFamily:POP,fontSize:10,fontWeight:600,letterSpacing:"0.18em",
+                            textTransform:"uppercase",color:C.champD,marginBottom:12 }}>Step 3 of 4 · Context</p>
+                          <p style={{ fontFamily:LORA,fontSize:17,color:C.ink,marginBottom:18 }}>Anything useful to know before we speak?</p>
+                          <div style={{ marginBottom:14 }}>
+                            <label style={{ fontFamily:POP,fontSize:11,fontWeight:500,letterSpacing:"0.06em",
+                              textTransform:"uppercase",color:C.slate,display:"block" }}>
+                              Brief context <span style={{ fontWeight:300,textTransform:"none",letterSpacing:0,color:C.stone }}>(optional)</span>
+                            </label>
+                            <textarea value={form.context} onChange={set("context")}
+                              placeholder="e.g. We're a beauty brand, ~$10m revenue, team of 5. Our Head of Marketing left last month..."
+                              style={{ ...iStyle(false),minHeight:90,resize:"vertical" }}
+                              onFocus={e=>e.target.style.borderColor=C.champ}
+                              onBlur={e=>e.target.style.borderColor=C.rule}/>
+                          </div>
+                          <div>
+                            <label style={{ fontFamily:POP,fontSize:11,fontWeight:500,letterSpacing:"0.06em",
+                              textTransform:"uppercase",color:C.slate,display:"block" }}>Preferred format</label>
+                            <select value={form.format} onChange={set("format")}
+                              style={{ ...iStyle(false),appearance:"none",cursor:"pointer" }}
+                              onFocus={e=>e.target.style.borderColor=C.champ}
+                              onBlur={e=>e.target.style.borderColor=C.rule}>
+                              <option value="">Select one</option>
+                              <option value="video">Video call (Meet / Zoom)</option>
+                              <option value="phone">Phone call</option>
+                              <option value="inperson">In person — Melbourne</option>
+                              <option value="any">No preference</option>
+                            </select>
+                          </div>
+                        </div>
+                      )}
+
+                      {step===4&&(
+                        <div>
+                          <p style={{ fontFamily:POP,fontSize:10,fontWeight:600,letterSpacing:"0.18em",
+                            textTransform:"uppercase",color:C.champD,marginBottom:12 }}>Step 4 of 4 · A good time</p>
+                          <p style={{ fontFamily:LORA,fontSize:17,color:C.ink,marginBottom:8 }}>When are you generally free?</p>
+                          <p style={{ fontFamily:POP,fontSize:13,color:C.stone,marginBottom:18,lineHeight:1.5 }}>
+                            Two or three options. AEST / Melbourne time. We'll confirm within one working day.
+                          </p>
+                          {[
+                            {id:"time1",lbl:"First preference",ph:"e.g. Tuesday 10–11am",req:true},
+                            {id:"time2",lbl:"Second preference",ph:"e.g. Thursday afternoon",req:false},
+                            {id:"time3",lbl:"Third preference",ph:"e.g. Any morning next week",req:false},
+                          ].map(f=>(
+                            <div key={f.id} style={{ marginBottom:12 }}>
+                              <label style={{ fontFamily:POP,fontSize:11,fontWeight:500,letterSpacing:"0.06em",
+                                textTransform:"uppercase",color:C.slate,display:"block" }}>
+                                {f.lbl}{!f.req&&<span style={{ fontWeight:300,textTransform:"none",letterSpacing:0,color:C.stone }}> (optional)</span>}
+                              </label>
+                              <input type="text" value={form[f.id]} onChange={set(f.id)} placeholder={f.ph}
+                                style={iStyle(f.req&&err[f.id])}
+                                onFocus={e=>e.target.style.borderColor=C.champ}
+                                onBlur={e=>e.target.style.borderColor=(f.req&&err[f.id])?"#c0392b":C.rule}/>
+                            </div>
+                          ))}
+                          {sendErr && (
+                            <p style={{ fontFamily:POP,fontSize:13,color:"#c0392b",marginTop:8 }}>
+                              Something went wrong. Please email us directly at{" "}
+                              <a href="mailto:kate@rathergoodmarketing.com.au" style={{ color:"#c0392b" }}>
+                                kate@rathergoodmarketing.com.au
+                              </a>
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Nav */}
+                      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",
+                        marginTop:26,paddingTop:22,borderTop:`1px solid ${C.rule}` }}>
+                        <button onClick={()=>step>1&&setStep(s=>s-1)}
+                          style={{ fontFamily:POP,fontSize:13,color:step===1?"transparent":C.stone,
+                            background:"none",border:"none",cursor:step===1?"default":"pointer",
+                            pointerEvents:step===1?"none":"auto" }}>
+                          ← Back
+                        </button>
+                        <Btn onClick={next}>
+                          {sending ? "Sending…" : step<4 ? "Next →" : "Send — we'll be in touch"}
+                        </Btn>
+                      </div>
+                    </>
+                  ):(
+                    <div style={{ textAlign:"center",padding:"40px 16px" }}>
+                      <div style={{ width:52,height:52,background:C.brg,borderRadius:"50%",
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        margin:"0 auto 20px",color:C.white }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </div>
+                      <h3 style={{ fontFamily:LORA,fontSize:24,color:C.ink,marginBottom:10 }}>Message received.</h3>
+                      <p style={{ fontFamily:POP,fontSize:14,color:C.slate,lineHeight:1.7 }}>
+                        We'll be in touch within one working day to confirm a time.<br/><br/>
+                        <a href="mailto:kate@rathergoodmarketing.com.au" style={{ color:C.brg }}>
+                          kate@rathergoodmarketing.com.au
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // ── FOOTER ───────────────────────────────────────────────────────
+    function Footer() {
+      return (
+        <footer style={{ background:C.ink,borderTop:`3px solid ${C.champ}` }}>
+          <div style={{ maxWidth:MAX,margin:"0 auto",
+            padding:"36px clamp(20px,4vw,56px)",
+            display:"flex",justifyContent:"space-between",alignItems:"center",
+            flexWrap:"wrap",gap:18 }}>
+            <span style={{ fontFamily:LORA,fontSize:15,color:C.brgPale }}>Rather Good Marketing</span>
+            <div style={{ display:"flex",gap:24,flexWrap:"wrap" }}>
+              {[{l:"kate@rathergoodmarketing.com.au",h:"mailto:kate@rathergoodmarketing.com.au"},
+                {l:"LinkedIn",h:"https://linkedin.com/in/katehughes211"}
+              ].map((a,i)=>(
+                <a key={i} href={a.h} target={a.h.startsWith("http")?"_blank":undefined}
+                  rel="noopener noreferrer"
+                  style={{ fontFamily:POP,fontSize:13,color:C.stone,textDecoration:"none",transition:"color 0.2s" }}
+                  onMouseEnter={e=>e.target.style.color=C.white}
+                  onMouseLeave={e=>e.target.style.color=C.stone}>{a.l}</a>
+              ))}
+            </div>
+            <p style={{ fontFamily:POP,fontSize:11,color:C.slate,letterSpacing:"0.04em" }}>
+              © 2026 Rather Good Marketing · Remote across AU &amp; UK
+            </p>
+          </div>
+        </footer>
+      );
+    }
+
+    // ── APP ──────────────────────────────────────────────────────────
+    function App() {
+      return (
+        <>
+          <Nav/>
+          <main>
+            <Hero/>
+            <Services/>
+            <Process/>
+            <WhoWeWorkWith/>
+            <Experience/>
+            <Contact/>
+          </main>
+          <Footer/>
+        </>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
